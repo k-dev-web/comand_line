@@ -11,6 +11,7 @@ import { TaskLogsEntity } from '../task-logs/entity/task-logs.entity';
 export class TaskService {
   constructor(
     @InjectRepository(TasksEntity)
+    @InjectRepository(TaskLogsEntity)
     private tasksRepository: Repository<TasksEntity>,
     private logTasksRepository: Repository<TaskLogsEntity>,
   ) {}
@@ -49,7 +50,7 @@ export class TaskService {
     tasksForRun.forEach(async (task) => {
       this.tasksRepository.update(task.id, { task_state: taskState.RUNNING });
       const log = await this.logTasksRepository.create({
-      //  taskId: task.id,
+        taskId: task.id,
         run_date: new Date(),
       });
       let error = '';
@@ -68,8 +69,8 @@ export class TaskService {
       });
       process.on('close', async (code) => {
         this.logTasksRepository.update(log.id, {
-        //  output: output,
-       //   error: error,
+          output: output,
+          error: error,
           return_code: code.toString(),
           complete_date: Date.now(),
         });
