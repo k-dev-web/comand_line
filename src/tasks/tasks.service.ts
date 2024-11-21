@@ -37,7 +37,7 @@ export class TaskService {
     await this.tasksRepository.remove(tasks);
   }
 
-  @Cron(CronExpression.EVERY_30_SECONDS)
+  @Cron(CronExpression.EVERY_5_SECONDS)
   async handleCron() {
     const tasksForRun = await this.tasksRepository.find({
       where: {
