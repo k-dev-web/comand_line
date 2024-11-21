@@ -8,44 +8,37 @@ import {
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { TasksEntity } from '../../tasks/entity/tasks.entity';
+import { Injectable } from '@nestjs/common';
 
-export enum logStatus {
-  ERROR = 'error',
-  SUCCESS = 'successful',
-}
-
+@Injectable()
 @Entity('logs')
 export class TaskLogsEntity {
   @PrimaryGeneratedColumn()
-  @ApiProperty({ description: 'The unique identifier of the book' })
+  @ApiProperty({ description: 'The unique identifier of the log' })
   id: number;
 
   @Column()
   taskId: number;
 
-  @ManyToOne((type) => TasksEntity, (task) => task.id)
+  @ManyToOne((type) => TasksEntity, (task) => task.logs)
   task: TasksEntity;
 
-  @Column({ type: 'enum', enum: logStatus })
-  @ApiProperty({ description: 'The price of the book' })
-  status: logStatus;
-
-  @Column()
-  @ApiProperty({ description: 'The name of the book' })
+  @Column({ default: '' })
+  @ApiProperty({ description: '' })
   output: string;
 
-  @Column()
-  @ApiProperty({ description: 'The name of the book' })
+  @Column({ default: '' })
+  @ApiProperty({ description: '' })
   error: string;
 
-  @Column()
-  @ApiProperty({ description: 'The name of the book' })
+  @Column({ nullable: true })
+  @ApiProperty({ description: '' })
   return_code: string;
 
   @Column('date')
   run_date: Date;
 
-  @Column('date')
+  @Column({ type: 'date', nullable: true })
   complete_date: Date;
 
   @PrimaryGeneratedColumn('uuid')

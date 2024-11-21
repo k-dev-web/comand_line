@@ -5,10 +5,11 @@ import {
   DeleteDateColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
+  OneToMany, JoinTable,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { TaskLogsEntity } from '../../task-logs/entity/task-logs.entity';
+import { Injectable } from '@nestjs/common';
 
 export enum taskState {
   WAITING = 'waiting_to_run',
@@ -16,6 +17,7 @@ export enum taskState {
   COMPLETED = 'completed',
 }
 
+@Injectable()
 @Entity('tasks')
 export class TasksEntity {
   @PrimaryGeneratedColumn()
@@ -38,7 +40,8 @@ export class TasksEntity {
   @ApiProperty({ description: 'Task status' })
   task_state: taskState;
 
-  @OneToMany((type) => TaskLogsEntity, (log) => log.taskId)
+  @OneToMany((type) => TaskLogsEntity, (log) => log.task)
+  @JoinTable()
   logs: TaskLogsEntity[];
 
   @CreateDateColumn({

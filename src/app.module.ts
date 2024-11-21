@@ -21,6 +21,9 @@ import { ScheduleModule } from '@nestjs/schedule';
       entities: [TasksEntity, TaskLogsEntity],
       synchronize: true,
       autoLoadEntities: true,
+      extra: {
+        max: 1, // set pool max size
+      }
     }),
     ScheduleModule.forRoot(),
     TasksModule,

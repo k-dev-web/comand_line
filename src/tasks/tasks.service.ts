@@ -1,19 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThanOrEqual, Repository } from 'typeorm';
 import { CreateTaskDto } from './dto/create-tasks.dto';
 import { TasksEntity, taskState } from './entity/tasks.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ChildProcess, spawn } from 'child_process';
-import { TaskLogsEntity } from '../task-logs/entity/task-logs.entity';
+import { TaskLogsService } from '../task-logs/task-logs.service';
 
 @Injectable()
 export class TaskService {
   constructor(
     @InjectRepository(TasksEntity)
-    @InjectRepository(TaskLogsEntity)
     private tasksRepository: Repository<TasksEntity>,
-    private logTasksRepository: Repository<TaskLogsEntity>,
+    @Inject() private readonly taskLogsService: TaskLogsService,
   ) {}
 
   create(createTasksDto: CreateTaskDto): Promise<TasksEntity> {
@@ -22,7 +21,7 @@ export class TaskService {
   }
 
   findAll(): Promise<TasksEntity[]> {
-    return this.tasksRepository.find();
+    return this.tasksRepository.find({ relations: ['logs'] });
   }
 
   async findOne(id: number): Promise<TasksEntity> {
@@ -49,7 +48,7 @@ export class TaskService {
 
     tasksForRun.forEach(async (task) => {
       this.tasksRepository.update(task.id, { task_state: taskState.RUNNING });
-      const log = await this.logTasksRepository.create({
+      const log = await this.taskLogsService.create({
         taskId: task.id,
         run_date: new Date(),
       });
@@ -68,11 +67,11 @@ export class TaskService {
         error += data.toString() + '\n';
       });
       process.on('close', async (code) => {
-        this.logTasksRepository.update(log.id, {
+        this.taskLogsService.update(log.id, {
           output: output,
           error: error,
           return_code: code.toString(),
-          complete_date: Date.now(),
+          complete_date: new Date(),
         });
         this.tasksRepository.update(task.id, {
           task_state: taskState.COMPLETED,
